@@ -5,11 +5,14 @@ import { RootStackParamList } from '../navigation/StackNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
 
-export default function Home({ navigation }: Props) {
+export default function Home({ navigation, route }: Props) {
+  const email = route.params?.email;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pantalla de Inicio</Text>
-      <CustomButton title="Ir a Registro" variant="secondary" onPress={() => navigation.navigate('RegisterScreen')} />
+      {email && <Text style={styles.email}>Bienvenido, {email}</Text>}
+      {!email && <CustomButton title="Ir a Login" variant="secondary" onPress={() => navigation.navigate('LoginScreen')} />}
     </View>
   );
 }
@@ -24,5 +27,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
+  },
+  email: {
+    fontSize: 16,
+    color: '#24327b',
+    marginTop: 8,
   },
 });
