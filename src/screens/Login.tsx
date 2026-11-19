@@ -20,7 +20,7 @@ export default function Login({ navigation }: Props) {
       return;
     }
     setError(undefined);
-    navigation.navigate('HomeScreen', { email: trimmed });
+    navigation.navigate('MainTabs', { screen: 'Home', params: { email: trimmed } });
   };
 
   return (

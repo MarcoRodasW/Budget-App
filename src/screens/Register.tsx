@@ -9,7 +9,7 @@ export default function Register({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pantalla de Registro</Text>
-      <CustomButton title="Inicio" onPress={() => navigation.navigate('HomeScreen')} />
+      <CustomButton title="Inicio" onPress={() => navigation.navigate('MainTabs')} />
     </View>
   );
 }

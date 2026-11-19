@@ -1,9 +1,15 @@
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
-import { RootStackParamList } from '../navigation/StackNavigator';
+import type { RootStackParamList } from '../navigation/StackNavigator';
+import type { TabsParamList } from '../navigation/StackTabsNavigation';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'HomeScreen'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TabsParamList, 'Home'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function Home({ navigation, route }: Props) {
   const email = route.params?.email;
