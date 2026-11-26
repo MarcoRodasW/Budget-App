@@ -6,7 +6,7 @@ const BUBBLE_SIZE = 400;
 
 // The pressable needs overflow: 'hidden' to clip the bubbles, and pointerEvents="box-only"
 // to keep the touch location relative to itself, even when pressing its children
-export function useBubbles() {
+export function useBubbles(color = 'white') {
   const [bubbles, setBubbles] = useState<{ id: number; x: number; y: number }[]>([]);
   const nextBubbleId = useRef(0);
 
@@ -22,12 +22,12 @@ export function useBubbles() {
   return {
     addBubble,
     bubbles: bubbles.map(bubble => (
-      <Bubble key={bubble.id} {...bubble} onDone={removeBubble} />
+      <Bubble key={bubble.id} {...bubble} color={color} onDone={removeBubble} />
     )),
   };
 }
 
-function Bubble({ id, x, y, onDone }: { id: number; x: number; y: number; onDone: (id: number) => void }) {
+function Bubble({ id, x, y, color, onDone }: { id: number; x: number; y: number; color: string; onDone: (id: number) => void }) {
   const progress = useAnimatedValue(0);
 
   useEffect(() => {
@@ -48,9 +48,10 @@ function Bubble({ id, x, y, onDone }: { id: number; x: number; y: number; onDone
       style={[
         styles.bubble,
         {
+          backgroundColor: color,
           left: x - BUBBLE_SIZE / 2,
           top: y - BUBBLE_SIZE / 2,
-          opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0] }),
+          opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [0.25, 0] }),
           transform: [{ scale: progress }],
         },
       ]}
@@ -64,6 +65,5 @@ const styles = StyleSheet.create({
     width: BUBBLE_SIZE,
     height: BUBBLE_SIZE,
     borderRadius: BUBBLE_SIZE / 2,
-    backgroundColor: 'white',
   },
 })

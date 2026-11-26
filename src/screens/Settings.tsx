@@ -1,9 +1,17 @@
 import { StyleSheet, Text, View } from "react-native";
+import CustomButton from "../components/CustomButton";
+import { useAuth } from "../context/AuthContext";
+import { colors, spacing, typography } from "../theme";
 
 export default function Settings() {
+    const { signOut } = useAuth();
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Pantalla de Ajustes</Text>
+            <View style={styles.actions}>
+                <CustomButton title="Cerrar sesión" variant="secondary" onPress={signOut} />
+            </View>
         </View>
     );
 }
@@ -11,17 +19,16 @@ export default function Settings() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.canvas,
         alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: spacing.margin,
     },
     title: {
-        fontSize: 24,
-        fontWeight: '600',
+        ...typography.headlineLg,
     },
-    email: {
-        fontSize: 16,
-        color: '#24327b',
-        marginTop: 8,
+    actions: {
+        alignSelf: 'stretch',
+        marginTop: spacing.xl,
     },
 });

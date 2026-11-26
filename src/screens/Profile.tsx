@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import { colors, typography } from "../theme";
 
 export default function Profile() {
     return (
@@ -11,17 +12,11 @@ export default function Profile() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: colors.canvas,
         alignItems: 'center',
         justifyContent: 'center',
     },
     title: {
-        fontSize: 24,
-        fontWeight: '600',
-    },
-    email: {
-        fontSize: 16,
-        color: '#24327b',
-        marginTop: 8,
+        ...typography.headlineLg,
     },
 });

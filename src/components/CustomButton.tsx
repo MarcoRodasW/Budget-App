@@ -1,42 +1,66 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useBubbles } from '../hooks/useBubbles';
-import { CustomButtonProps, CustomButtonVariant } from '../utils/types/ButtonProps';
+import { colors, fonts, radii } from '../theme';
+import { CustomButtonProps } from '../utils/types/ButtonProps';
 
 export default function CustomButton({ title, onPress, variant = 'primary', disabled = false }: CustomButtonProps) {
-  const { bubbles, addBubble } = useBubbles();
-  const styles = getStyles(variant);
+  const { bubbles, addBubble } = useBubbles(variant === 'primary' ? colors.surface : colors.ink);
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.button, (pressed || disabled) && { opacity: disabled ? 0.5 : 0.9 }]}
+      style={({ pressed }) => [
+        styles.base,
+        styles[variant],
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}
       pointerEvents="box-only"
       onPressIn={addBubble}
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
     >
       {bubbles}
-      <Text style={styles.buttonText}>{title}</Text>
+      <Text style={[styles.label, variant === 'primary' && styles.labelPrimary]}>{title}</Text>
     </Pressable>
   );
 }
 
-const getStyles = (variant: CustomButtonVariant) =>
-  StyleSheet.create({
-    button: {
-      backgroundColor:
-        variant === 'primary' ? '#24327b' : variant === 'secondary' ? 'lightgray' : 'transparent',
-      width: 180,
-      paddingVertical: 14,
-      paddingHorizontal: 18,
-      borderRadius: 8,
-      alignItems: 'center',
-      marginTop: 10,
-      overflow: 'hidden',
-    },
-    buttonText: {
-      color: variant === 'primary' ? 'white' : '#000000',
-      fontWeight: '500',
-      fontSize: variant === 'tertiary' ? 11 : 15,
-      letterSpacing: 0.3,
-    },
-  });
+const styles = StyleSheet.create({
+  base: {
+    alignSelf: 'stretch',
+    height: 52,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    overflow: 'hidden',
+  },
+  primary: {
+    backgroundColor: colors.ink,
+  },
+  secondary: {
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.ink,
+  },
+  tertiary: {
+    backgroundColor: 'transparent',
+  },
+  pressed: {
+    transform: [{ scale: 0.97 }],
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  label: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+    letterSpacing: 0.15,
+    color: colors.ink,
+  },
+  labelPrimary: {
+    color: colors.surface,
+  },
+});
