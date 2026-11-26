@@ -1,65 +1,109 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
+import AuthFooterLink from '../components/auth/AuthFooterLink';
+import AuthLayout from '../components/auth/AuthLayout';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
+import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/StackNavigator';
+import { colors, fonts, spacing } from '../theme';
+import { EMAIL_REGEX } from '../utils/validation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LoginScreen'>;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+type Errors = { email?: string; password?: string };
 
 export default function Login({ navigation }: Props) {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
-  const [error, setError] = useState<string>();
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<Errors>({});
 
   const handleLogin = () => {
     const trimmed = email.trim();
-    if (!EMAIL_REGEX.test(trimmed)) {
-      setError('Ingresa un email válido');
-      return;
-    }
-    setError(undefined);
-    navigation.navigate('MainTabs', { screen: 'Home', params: { email: trimmed } });
+    const next: Errors = {};
+    if (!EMAIL_REGEX.test(trimmed)) next.email = 'Ingresa un correo válido';
+    if (!password) next.password = 'Ingresa tu contraseña';
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    signIn(trimmed);
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
+    <AuthLayout
+      title="¡Bienvenido de nuevo!"
+      subtitle="La mejor forma de gestionar tus finanzas."
+      onBack={() => navigation.goBack()}
+      footer={
+        <AuthFooterLink
+          question="¿No tienes una cuenta?"
+          action="Regístrate"
+          onPress={() => navigation.replace('RegisterScreen')}
+        />
+      }
+    >
       <CustomInput
-        label="Email"
-        placeholder="tucorreo@ejemplo.com"
+        label="Correo electrónico"
+        icon="mail-outline"
+        placeholder="Ingresa tu correo"
         value={email}
         onChangeText={text => {
           setEmail(text);
-          if (error) setError(undefined);
+          if (errors.email) setErrors(e => ({ ...e, email: undefined }));
         }}
-        error={error}
+        error={errors.email}
         keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
         autoComplete="email"
         textContentType="emailAddress"
+        returnKeyType="next"
+      />
+      <CustomInput
+        label="Contraseña"
+        icon="lock-closed-outline"
+        placeholder="Ingresa tu contraseña"
+        password
+        value={password}
+        onChangeText={text => {
+          setPassword(text);
+          if (errors.password) setErrors(e => ({ ...e, password: undefined }));
+        }}
+        error={errors.password}
+        autoCapitalize="none"
+        autoComplete="current-password"
+        textContentType="password"
         returnKeyType="go"
         onSubmitEditing={handleLogin}
       />
-      <CustomButton title="Entrar" onPress={handleLogin} disabled={!email.trim()} />
-      <CustomButton title="¿No tienes cuenta? Regístrate" variant="tertiary" onPress={() => navigation.navigate('RegisterScreen')} />
-    </KeyboardAvoidingView>
+
+      <View style={styles.forgotRow}>
+        <Text
+          style={styles.forgot}
+          onPress={() => Alert.alert('Próximamente', 'La recuperación de contraseña estará disponible pronto.')}
+          accessibilityRole="link"
+          suppressHighlighting
+        >
+          ¿Olvidaste tu contraseña?
+        </Text>
+      </View>
+
+      <CustomButton title="Iniciar sesión" onPress={handleLogin} />
+    </AuthLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+  forgotRow: {
+    alignItems: 'flex-end',
+    marginTop: -spacing.sm,
+    marginBottom: spacing.xl,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 24,
+  forgot: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+    color: colors.primary,
   },
 });
