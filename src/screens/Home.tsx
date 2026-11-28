@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from 'r
 import CustomButton from '../components/CustomButton';
 import AvisoDeshacer from '../components/gastos/AvisoDeshacer';
 import ChipGroup from '../components/gastos/ChipGroup';
+import FormularioGasto from '../components/gastos/FormularioGasto';
 import GastoItem from '../components/gastos/GastoItem';
 import ResumenCard from '../components/gastos/ResumenCard';
 import { useAuth } from '../context/AuthContext';
@@ -16,9 +17,11 @@ import {
   PRESUPUESTO_INICIAL,
   PRESUPUESTO_MAXIMO,
   PRESUPUESTO_MINIMO,
+  SIGUIENTE_ID_INICIAL,
+  normalizarMonto,
   sumarMontos,
 } from '../utils/gastos';
-import { FiltroCategoria, Gasto, GastoEliminado, NivelPresupuesto, TotalCategoria } from '../utils/types/Gasto';
+import { Categoria, FiltroCategoria, Gasto, GastoEliminado, NivelPresupuesto, TotalCategoria } from '../utils/types/Gasto';
 
 export default function Home() {
   const { user } = useAuth();
@@ -28,6 +31,12 @@ export default function Home() {
   const [filtroCategoria, setFiltroCategoria] = useState<FiltroCategoria>('todas');
   const [soloPendientes, setSoloPendientes] = useState<boolean>(false);
   const [gastoEliminado, setGastoEliminado] = useState<GastoEliminado | null>(null);
+  const [siguienteId, setSiguienteId] = useState<number>(SIGUIENTE_ID_INICIAL);
+  const [descripcion, setDescripcion] = useState<string>('');
+  const [monto, setMonto] = useState<string>('');
+  const [categoriaNueva, setCategoriaNueva] = useState<Categoria>('comida');
+  const [descripcionTocada, setDescripcionTocada] = useState<boolean>(false);
+  const [montoTocado, setMontoTocado] = useState<boolean>(false);
 
   useEffect(() => {
     const temporizador = setTimeout(() => setGastos(GASTOS_INICIALES), 1500);
@@ -89,6 +98,58 @@ export default function Home() {
     const estado = soloPendientes ? ' pendientes' : '';
     return `No hay gastos${categoria}${estado}`;
   }, [filtroCategoria, soloPendientes]);
+
+  const errorDescripcion = useMemo(() => {
+    const texto = descripcion.trim();
+    if (texto.length < 3) return 'La descripción debe tener al menos 3 caracteres';
+    const repetido = (gastos ?? []).some(
+      gasto => gasto.categoria === categoriaNueva && gasto.descripcion.trim().toLowerCase() === texto.toLowerCase(),
+    );
+    if (repetido) return `Ya existe «${texto}» en ${ETIQUETAS_CATEGORIA[categoriaNueva].toLowerCase()}`;
+    return null;
+  }, [descripcion, categoriaNueva, gastos]);
+
+  const errorMonto = useMemo(() => {
+    const texto = normalizarMonto(monto);
+    if (texto === '') return 'Ingrese un monto';
+    if (!/^-?(\d+(\.\d*)?|\.\d+)$/.test(texto)) return 'El monto debe ser un número';
+    if (/\.\d{3,}$/.test(texto)) return 'El monto admite máximo dos decimales';
+    if (Number(texto) <= 0) return 'El monto debe ser mayor que 0';
+    return null;
+  }, [monto]);
+
+  const formularioInvalido = errorDescripcion !== null || errorMonto !== null;
+
+  const cambiarDescripcion = (texto: string) => {
+    setDescripcion(texto);
+    setDescripcionTocada(true);
+  };
+
+  const cambiarMonto = (texto: string) => {
+    setMonto(texto);
+    setMontoTocado(true);
+  };
+
+  const agregarGasto = () => {
+    if (formularioInvalido) return;
+    const nuevoGasto: Gasto = {
+      id: siguienteId,
+      descripcion: descripcion.trim(),
+      categoria: categoriaNueva,
+      monto: Number(normalizarMonto(monto)),
+      pagado: false,
+    };
+    setGastos(anteriores => (anteriores === null ? null : [nuevoGasto, ...anteriores]));
+    setSiguienteId(anterior => anterior + 1);
+    if (filtroCategoria !== 'todas' && filtroCategoria !== nuevoGasto.categoria) {
+      setFiltroCategoria('todas');
+    }
+    setDescripcion('');
+    setMonto('');
+    setCategoriaNueva('comida');
+    setDescripcionTocada(false);
+    setMontoTocado(false);
+  };
 
   const eliminarGasto = (id: number) => {
     if (gastos === null) return;
@@ -171,6 +232,23 @@ export default function Home() {
           </View>
         </View>
 
+        <FormularioGasto
+          descripcion={descripcion}
+          monto={monto}
+          categoria={categoriaNueva}
+          errorDescripcion={descripcionTocada ? errorDescripcion : null}
+          errorMonto={montoTocado ? errorMonto : null}
+          deshabilitado={formularioInvalido}
+          onCambiarDescripcion={cambiarDescripcion}
+          onCambiarMonto={cambiarMonto}
+          onCambiarCategoria={setCategoriaNueva}
+          onAgregar={agregarGasto}
+        />
+
+        <View style={styles.seccion}>
+          <Text style={styles.seccionTitulo}>Lista de gastos</Text>
+        </View>
+
         <ChipGroup opciones={FILTROS} seleccionado={filtroCategoria} onSeleccionar={setFiltroCategoria} />
 
         <View style={styles.switchFila}>
@@ -247,6 +325,15 @@ const styles = StyleSheet.create({
   },
   presupuestoBoton: {
     flex: 1,
+  },
+  seccion: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.outline,
+  },
+  seccionTitulo: {
+    ...typography.headlineMd,
   },
   switchFila: {
     flexDirection: 'row',
