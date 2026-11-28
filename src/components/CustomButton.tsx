@@ -4,7 +4,8 @@ import { colors, fonts, radii } from '../theme';
 import { CustomButtonProps } from '../utils/types/ButtonProps';
 
 export default function CustomButton({ title, onPress, variant = 'primary', size = 'md', disabled = false }: CustomButtonProps) {
-  const { bubbles, addBubble } = useBubbles(variant === 'primary' ? colors.surface : colors.ink);
+  const textoClaro = variant === 'primary' || variant === 'danger';
+  const { bubbles, addBubble } = useBubbles(textoClaro ? colors.surface : colors.ink);
 
   return (
     <Pressable
@@ -23,7 +24,7 @@ export default function CustomButton({ title, onPress, variant = 'primary', size
       accessibilityState={{ disabled }}
     >
       {bubbles}
-      <Text style={[styles.label, size === 'sm' && styles.labelSmall, variant === 'primary' && styles.labelPrimary]}>
+      <Text style={[styles.label, size === 'sm' && styles.labelSmall, textoClaro && styles.labelPrimary]}>
         {title}
       </Text>
     </Pressable>
@@ -50,6 +51,9 @@ const styles = StyleSheet.create({
   },
   tertiary: {
     backgroundColor: 'transparent',
+  },
+  danger: {
+    backgroundColor: colors.error,
   },
   small: {
     height: 40,
