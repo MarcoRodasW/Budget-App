@@ -1,4 +1,4 @@
-export type CustomButtonVariant = 'primary' | 'secondary' | 'tertiary';
+export type CustomButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger';
 
 export type CustomButtonSize = 'md' | 'sm';
 

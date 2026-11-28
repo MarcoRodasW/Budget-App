@@ -4,7 +4,7 @@ import { COLORES_CATEGORIA, ETIQUETAS_CATEGORIA, formatearMonto } from '../../ut
 import { GastoItemProps } from '../../utils/types/GastosProps';
 import CustomButton from '../CustomButton';
 
-export default function GastoItem({ gasto, posicion, onAlternarPagado }: GastoItemProps) {
+export default function GastoItem({ gasto, posicion, onAlternarPagado, onEliminar }: GastoItemProps) {
   return (
     <View style={styles.card}>
       <View style={styles.fila}>
@@ -28,15 +28,14 @@ export default function GastoItem({ gasto, posicion, onAlternarPagado }: GastoIt
       </View>
 
       <View style={styles.acciones}>
-        <View style={styles.accion}>
-          <CustomButton
-            title={gasto.pagado ? 'Marcar como pendiente' : 'Marcar como pagado'}
-            size="sm"
-            variant="secondary"
-            onPress={() => onAlternarPagado(gasto.id)}
-            disabled={gasto.pagado}
-          />
-        </View>
+        <CustomButton
+          title={gasto.pagado ? 'Marcar como pendiente' : 'Marcar como pagado'}
+          size="sm"
+          variant="secondary"
+          onPress={() => onAlternarPagado(gasto.id)}
+          disabled={gasto.pagado}
+        />
+        <CustomButton title="Eliminar" size="sm" variant="danger" onPress={() => onEliminar(gasto.id)} />
       </View>
     </View>
   );
@@ -102,10 +101,6 @@ const styles = StyleSheet.create({
     ...typography.titleMd,
   },
   acciones: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  accion: {
-    flex: 1,
+    gap: spacing.xs,
   },
 });

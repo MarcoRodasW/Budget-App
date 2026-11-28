@@ -19,4 +19,5 @@ export type GastoItemProps = {
   gasto: Gasto;
   posicion: number;
   onAlternarPagado: (id: number) => void;
+  onEliminar: (id: number) => void;
 };
