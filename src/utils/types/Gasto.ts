@@ -9,3 +9,10 @@ export type Gasto = {
 };
 
 export type FiltroCategoria = Categoria | 'todas';
+
+export type TotalCategoria = {
+  categoria: Categoria;
+  total: number;
+};
+
+export type NivelPresupuesto = 'normal' | 'alerta' | 'excedido';

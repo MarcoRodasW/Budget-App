@@ -1,7 +1,14 @@
-import { Gasto } from './Gasto';
+import { Gasto, NivelPresupuesto, TotalCategoria } from './Gasto';
 
 export type ResumenCardProps = {
   presupuesto: number;
+  totalGastado: number;
+  totalPendiente: number;
+  totalVisible: number;
+  porcentajeUsado: number;
+  nivelPresupuesto: NivelPresupuesto;
+  excedente: number;
+  categoriaMayor: TotalCategoria | null;
 };
 
 export type OpcionChip<T extends string> = {

@@ -42,3 +42,8 @@ export const PASO_PRESUPUESTO = 100;
 export function formatearMonto(monto: number): string {
   return `L ${monto.toFixed(2)}`;
 }
+
+export function sumarMontos(lista: Gasto[]): number {
+  const total = lista.reduce((suma, gasto) => suma + gasto.monto, 0);
+  return Math.round(total * 100) / 100;
+}
