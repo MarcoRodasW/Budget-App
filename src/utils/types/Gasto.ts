@@ -7,3 +7,5 @@ export type Gasto = {
   monto: number;
   pagado: boolean;
 };
+
+export type FiltroCategoria = Categoria | 'todas';
