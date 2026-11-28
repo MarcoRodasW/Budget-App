@@ -1,23 +1,38 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
+import ChipGroup from '../components/gastos/ChipGroup';
+import GastoItem from '../components/gastos/GastoItem';
 import ResumenCard from '../components/gastos/ResumenCard';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing, typography } from '../theme';
 import {
+  FILTROS,
   GASTOS_INICIALES,
   PASO_PRESUPUESTO,
   PRESUPUESTO_INICIAL,
   PRESUPUESTO_MAXIMO,
   PRESUPUESTO_MINIMO,
 } from '../utils/gastos';
-import { Gasto } from '../utils/types/Gasto';
+import { FiltroCategoria, Gasto } from '../utils/types/Gasto';
 
 export default function Home() {
   const { user } = useAuth();
 
-  const [gastos] = useState<Gasto[]>(GASTOS_INICIALES);
+  const [gastos, setGastos] = useState<Gasto[]>(GASTOS_INICIALES);
   const [presupuesto, setPresupuesto] = useState<number>(PRESUPUESTO_INICIAL);
+  const [filtroCategoria, setFiltroCategoria] = useState<FiltroCategoria>('todas');
+
+  const gastosVisibles = useMemo(
+    () => gastos.filter(gasto => filtroCategoria === 'todas' || gasto.categoria === filtroCategoria),
+    [gastos, filtroCategoria],
+  );
+
+  const alternarPagado = (id: number) => {
+    setGastos(anteriores =>
+      anteriores.map(gasto => (gasto.id === id ? { ...gasto, pagado: !gasto.pagado } : gasto)),
+    );
+  };
 
   const disminuirPresupuesto = () => {
     setPresupuesto(anterior => Math.max(PRESUPUESTO_MINIMO, anterior - PASO_PRESUPUESTO));
@@ -56,6 +71,14 @@ export default function Home() {
             />
           </View>
         </View>
+
+        <ChipGroup opciones={FILTROS} seleccionado={filtroCategoria} onSeleccionar={setFiltroCategoria} />
+
+        <View style={styles.lista}>
+          {gastosVisibles.map((gasto, indice) => (
+            <GastoItem key={gasto.id} gasto={gasto} posicion={indice + 1} onAlternarPagado={alternarPagado} />
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -91,5 +114,8 @@ const styles = StyleSheet.create({
   },
   presupuestoBoton: {
     flex: 1,
+  },
+  lista: {
+    gap: spacing.gutter,
   },
 });
