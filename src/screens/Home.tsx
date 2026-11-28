@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
+import AvisoDeshacer from '../components/gastos/AvisoDeshacer';
 import ChipGroup from '../components/gastos/ChipGroup';
 import GastoItem from '../components/gastos/GastoItem';
 import ResumenCard from '../components/gastos/ResumenCard';
@@ -17,19 +18,31 @@ import {
   PRESUPUESTO_MINIMO,
   sumarMontos,
 } from '../utils/gastos';
-import { FiltroCategoria, Gasto, NivelPresupuesto, TotalCategoria } from '../utils/types/Gasto';
+import { FiltroCategoria, Gasto, GastoEliminado, NivelPresupuesto, TotalCategoria } from '../utils/types/Gasto';
 
 export default function Home() {
   const { user } = useAuth();
 
-  const [gastos, setGastos] = useState<Gasto[]>(GASTOS_INICIALES);
+  const [gastos, setGastos] = useState<Gasto[] | null>(null);
   const [presupuesto, setPresupuesto] = useState<number>(PRESUPUESTO_INICIAL);
   const [filtroCategoria, setFiltroCategoria] = useState<FiltroCategoria>('todas');
   const [soloPendientes, setSoloPendientes] = useState<boolean>(false);
+  const [gastoEliminado, setGastoEliminado] = useState<GastoEliminado | null>(null);
+
+  useEffect(() => {
+    const temporizador = setTimeout(() => setGastos(GASTOS_INICIALES), 1500);
+    return () => clearTimeout(temporizador);
+  }, []);
+
+  useEffect(() => {
+    if (gastoEliminado === null) return;
+    const temporizador = setTimeout(() => setGastoEliminado(null), 5000);
+    return () => clearTimeout(temporizador);
+  }, [gastoEliminado]);
 
   const gastosVisibles = useMemo(
     () =>
-      gastos.filter(
+      (gastos ?? []).filter(
         gasto =>
           (filtroCategoria === 'todas' || gasto.categoria === filtroCategoria) &&
           (!soloPendientes || !gasto.pagado),
@@ -37,9 +50,9 @@ export default function Home() {
     [gastos, filtroCategoria, soloPendientes],
   );
 
-  const totalGastado = useMemo(() => sumarMontos(gastos), [gastos]);
+  const totalGastado = useMemo(() => sumarMontos(gastos ?? []), [gastos]);
 
-  const totalPendiente = useMemo(() => sumarMontos(gastos.filter(gasto => !gasto.pagado)), [gastos]);
+  const totalPendiente = useMemo(() => sumarMontos((gastos ?? []).filter(gasto => !gasto.pagado)), [gastos]);
 
   const totalVisible = useMemo(() => sumarMontos(gastosVisibles), [gastosVisibles]);
 
@@ -57,7 +70,7 @@ export default function Home() {
     () =>
       CATEGORIAS.map(categoria => ({
         categoria,
-        total: sumarMontos(gastos.filter(gasto => gasto.categoria === categoria)),
+        total: sumarMontos((gastos ?? []).filter(gasto => gasto.categoria === categoria)),
       })),
     [gastos],
   );
@@ -78,12 +91,27 @@ export default function Home() {
   }, [filtroCategoria, soloPendientes]);
 
   const eliminarGasto = (id: number) => {
-    setGastos(anteriores => anteriores.filter(gasto => gasto.id !== id));
+    if (gastos === null) return;
+    const indice = gastos.findIndex(gasto => gasto.id === id);
+    if (indice === -1) return;
+    setGastoEliminado({ gasto: gastos[indice], indice });
+    setGastos(anteriores => (anteriores === null ? null : anteriores.filter(gasto => gasto.id !== id)));
+  };
+
+  const deshacerEliminacion = () => {
+    if (gastoEliminado === null) return;
+    const { gasto, indice } = gastoEliminado;
+    setGastos(anteriores =>
+      anteriores === null ? null : [...anteriores.slice(0, indice), gasto, ...anteriores.slice(indice)],
+    );
+    setGastoEliminado(null);
   };
 
   const alternarPagado = (id: number) => {
     setGastos(anteriores =>
-      anteriores.map(gasto => (gasto.id === id ? { ...gasto, pagado: !gasto.pagado } : gasto)),
+      anteriores === null
+        ? null
+        : anteriores.map(gasto => (gasto.id === id ? { ...gasto, pagado: !gasto.pagado } : gasto)),
     );
   };
 
@@ -94,6 +122,15 @@ export default function Home() {
   const aumentarPresupuesto = () => {
     setPresupuesto(anterior => Math.min(PRESUPUESTO_MAXIMO, anterior + PASO_PRESUPUESTO));
   };
+
+  if (gastos === null) {
+    return (
+      <View style={[styles.container, styles.cargando]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.cargandoTexto}>Cargando gastos…</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -163,6 +200,10 @@ export default function Home() {
           )}
         </View>
       </ScrollView>
+
+      {gastoEliminado && (
+        <AvisoDeshacer descripcion={gastoEliminado.gasto.descripcion} onDeshacer={deshacerEliminacion} />
+      )}
     </View>
   );
 }
@@ -171,6 +212,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.canvas,
+  },
+  cargando: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  cargandoTexto: {
+    ...typography.bodyLg,
+    color: colors.charcoal,
   },
   content: {
     paddingHorizontal: spacing.margin,
