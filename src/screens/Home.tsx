@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import CustomButton from '../components/CustomButton';
 import ChipGroup from '../components/gastos/ChipGroup';
 import GastoItem from '../components/gastos/GastoItem';
@@ -7,6 +7,7 @@ import ResumenCard from '../components/gastos/ResumenCard';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing, typography } from '../theme';
 import {
+  ETIQUETAS_CATEGORIA,
   FILTROS,
   GASTOS_INICIALES,
   PASO_PRESUPUESTO,
@@ -22,11 +23,27 @@ export default function Home() {
   const [gastos, setGastos] = useState<Gasto[]>(GASTOS_INICIALES);
   const [presupuesto, setPresupuesto] = useState<number>(PRESUPUESTO_INICIAL);
   const [filtroCategoria, setFiltroCategoria] = useState<FiltroCategoria>('todas');
+  const [soloPendientes, setSoloPendientes] = useState<boolean>(false);
 
   const gastosVisibles = useMemo(
-    () => gastos.filter(gasto => filtroCategoria === 'todas' || gasto.categoria === filtroCategoria),
-    [gastos, filtroCategoria],
+    () =>
+      gastos.filter(
+        gasto =>
+          (filtroCategoria === 'todas' || gasto.categoria === filtroCategoria) &&
+          (!soloPendientes || !gasto.pagado),
+      ),
+    [gastos, filtroCategoria, soloPendientes],
   );
+
+  const mensajeVacio = useMemo(() => {
+    const categoria = filtroCategoria === 'todas' ? '' : ` de ${ETIQUETAS_CATEGORIA[filtroCategoria].toLowerCase()}`;
+    const estado = soloPendientes ? ' pendientes' : '';
+    return `No hay gastos${categoria}${estado}`;
+  }, [filtroCategoria, soloPendientes]);
+
+  const eliminarGasto = (id: number) => {
+    setGastos(anteriores => anteriores.filter(gasto => gasto.id !== id));
+  };
 
   const alternarPagado = (id: number) => {
     setGastos(anteriores =>
@@ -74,10 +91,31 @@ export default function Home() {
 
         <ChipGroup opciones={FILTROS} seleccionado={filtroCategoria} onSeleccionar={setFiltroCategoria} />
 
+        <View style={styles.switchFila}>
+          <Text style={styles.switchTexto}>Solo pendientes</Text>
+          <Switch
+            value={soloPendientes}
+            onValueChange={setSoloPendientes}
+            trackColor={{ false: colors.muted, true: colors.mustard }}
+            thumbColor={colors.surface}
+            accessibilityLabel="Solo pendientes"
+          />
+        </View>
+
         <View style={styles.lista}>
-          {gastosVisibles.map((gasto, indice) => (
-            <GastoItem key={gasto.id} gasto={gasto} posicion={indice + 1} onAlternarPagado={alternarPagado} />
-          ))}
+          {gastosVisibles.length === 0 ? (
+            <Text style={styles.vacio}>{mensajeVacio}</Text>
+          ) : (
+            gastosVisibles.map((gasto, indice) => (
+              <GastoItem
+                key={gasto.id}
+                gasto={gasto}
+                posicion={indice + 1}
+                onAlternarPagado={alternarPagado}
+                onEliminar={eliminarGasto}
+              />
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
@@ -115,7 +153,21 @@ const styles = StyleSheet.create({
   presupuestoBoton: {
     flex: 1,
   },
+  switchFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  switchTexto: {
+    ...typography.titleMd,
+  },
   lista: {
     gap: spacing.gutter,
+  },
+  vacio: {
+    ...typography.bodyLg,
+    color: colors.charcoal,
+    textAlign: 'center',
+    paddingVertical: spacing.xl,
   },
 });
