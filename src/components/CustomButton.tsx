@@ -3,7 +3,7 @@ import { useBubbles } from '../hooks/useBubbles';
 import { colors, fonts, radii } from '../theme';
 import { CustomButtonProps } from '../utils/types/ButtonProps';
 
-export default function CustomButton({ title, onPress, variant = 'primary', disabled = false }: CustomButtonProps) {
+export default function CustomButton({ title, onPress, variant = 'primary', size = 'md', disabled = false }: CustomButtonProps) {
   const { bubbles, addBubble } = useBubbles(variant === 'primary' ? colors.surface : colors.ink);
 
   return (
@@ -11,6 +11,7 @@ export default function CustomButton({ title, onPress, variant = 'primary', disa
       style={({ pressed }) => [
         styles.base,
         styles[variant],
+        size === 'sm' && styles.small,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
@@ -22,7 +23,9 @@ export default function CustomButton({ title, onPress, variant = 'primary', disa
       accessibilityState={{ disabled }}
     >
       {bubbles}
-      <Text style={[styles.label, variant === 'primary' && styles.labelPrimary]}>{title}</Text>
+      <Text style={[styles.label, size === 'sm' && styles.labelSmall, variant === 'primary' && styles.labelPrimary]}>
+        {title}
+      </Text>
     </Pressable>
   );
 }
@@ -48,6 +51,10 @@ const styles = StyleSheet.create({
   tertiary: {
     backgroundColor: 'transparent',
   },
+  small: {
+    height: 40,
+    paddingHorizontal: 14,
+  },
   pressed: {
     transform: [{ scale: 0.97 }],
   },
@@ -59,6 +66,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.15,
     color: colors.ink,
+  },
+  labelSmall: {
+    fontSize: 13,
   },
   labelPrimary: {
     color: colors.surface,
