@@ -33,7 +33,7 @@ export default function GastoItem({ gasto, posicion, onAlternarPagado, onElimina
           size="sm"
           variant="secondary"
           onPress={() => onAlternarPagado(gasto.id)}
-          disabled={gasto.pagado}
+        //disabled={gasto.pagado}
         />
         <CustomButton title="Eliminar" size="sm" variant="danger" onPress={() => onEliminar(gasto.id)} />
       </View>
