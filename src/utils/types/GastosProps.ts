@@ -28,3 +28,8 @@ export type GastoItemProps = {
   onAlternarPagado: (id: number) => void;
   onEliminar: (id: number) => void;
 };
+
+export type AvisoDeshacerProps = {
+  descripcion: string;
+  onDeshacer: () => void;
+};

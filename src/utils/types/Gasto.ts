@@ -16,3 +16,8 @@ export type TotalCategoria = {
 };
 
 export type NivelPresupuesto = 'normal' | 'alerta' | 'excedido';
+
+export type GastoEliminado = {
+  gasto: Gasto;
+  indice: number;
+};
