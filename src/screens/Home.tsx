@@ -7,6 +7,7 @@ import ResumenCard from '../components/gastos/ResumenCard';
 import { useAuth } from '../context/AuthContext';
 import { colors, spacing, typography } from '../theme';
 import {
+  CATEGORIAS,
   ETIQUETAS_CATEGORIA,
   FILTROS,
   GASTOS_INICIALES,
@@ -14,8 +15,9 @@ import {
   PRESUPUESTO_INICIAL,
   PRESUPUESTO_MAXIMO,
   PRESUPUESTO_MINIMO,
+  sumarMontos,
 } from '../utils/gastos';
-import { FiltroCategoria, Gasto } from '../utils/types/Gasto';
+import { FiltroCategoria, Gasto, NivelPresupuesto, TotalCategoria } from '../utils/types/Gasto';
 
 export default function Home() {
   const { user } = useAuth();
@@ -33,6 +35,40 @@ export default function Home() {
           (!soloPendientes || !gasto.pagado),
       ),
     [gastos, filtroCategoria, soloPendientes],
+  );
+
+  const totalGastado = useMemo(() => sumarMontos(gastos), [gastos]);
+
+  const totalPendiente = useMemo(() => sumarMontos(gastos.filter(gasto => !gasto.pagado)), [gastos]);
+
+  const totalVisible = useMemo(() => sumarMontos(gastosVisibles), [gastosVisibles]);
+
+  const porcentajeUsado = useMemo(() => (totalGastado / presupuesto) * 100, [totalGastado, presupuesto]);
+
+  const nivelPresupuesto = useMemo<NivelPresupuesto>(() => {
+    if (porcentajeUsado < 70) return 'normal';
+    if (porcentajeUsado <= 100) return 'alerta';
+    return 'excedido';
+  }, [porcentajeUsado]);
+
+  const excedente = useMemo(() => Math.max(0, totalGastado - presupuesto), [totalGastado, presupuesto]);
+
+  const totalesPorCategoria = useMemo<TotalCategoria[]>(
+    () =>
+      CATEGORIAS.map(categoria => ({
+        categoria,
+        total: sumarMontos(gastos.filter(gasto => gasto.categoria === categoria)),
+      })),
+    [gastos],
+  );
+
+  const categoriaMayor = useMemo(
+    () =>
+      totalesPorCategoria.reduce<TotalCategoria | null>(
+        (mayor, actual) => (actual.total > 0 && (mayor === null || actual.total > mayor.total) ? actual : mayor),
+        null,
+      ),
+    [totalesPorCategoria],
   );
 
   const mensajeVacio = useMemo(() => {
@@ -66,7 +102,16 @@ export default function Home() {
         {user && <Text style={styles.greeting}>Hola, {user.username} 👋</Text>}
         <Text style={styles.subtitle}>{gastos.length} gastos registrados</Text>
 
-        <ResumenCard presupuesto={presupuesto} />
+        <ResumenCard
+          presupuesto={presupuesto}
+          totalGastado={totalGastado}
+          totalPendiente={totalPendiente}
+          totalVisible={totalVisible}
+          porcentajeUsado={porcentajeUsado}
+          nivelPresupuesto={nivelPresupuesto}
+          excedente={excedente}
+          categoriaMayor={categoriaMayor}
+        />
 
         <View style={styles.presupuestoBotones}>
           <View style={styles.presupuestoBoton}>
