@@ -29,10 +29,14 @@ export const COLORES_CATEGORIA: Record<Categoria, string> = {
   estudio: colors.outline,
 };
 
-export const FILTROS: OpcionChip<FiltroCategoria>[] = [
-  { valor: 'todas', etiqueta: 'Todas' },
-  ...CATEGORIAS.map(categoria => ({ valor: categoria, etiqueta: ETIQUETAS_CATEGORIA[categoria] })),
-];
+export const OPCIONES_CATEGORIA: OpcionChip<Categoria>[] = CATEGORIAS.map(categoria => ({
+  valor: categoria,
+  etiqueta: ETIQUETAS_CATEGORIA[categoria],
+}));
+
+export const FILTROS: OpcionChip<FiltroCategoria>[] = [{ valor: 'todas', etiqueta: 'Todas' }, ...OPCIONES_CATEGORIA];
+
+export const SIGUIENTE_ID_INICIAL = Math.max(...GASTOS_INICIALES.map(gasto => gasto.id)) + 1;
 
 export const PRESUPUESTO_INICIAL = 1500;
 export const PRESUPUESTO_MINIMO = 500;
@@ -46,4 +50,8 @@ export function formatearMonto(monto: number): string {
 export function sumarMontos(lista: Gasto[]): number {
   const total = lista.reduce((suma, gasto) => suma + gasto.monto, 0);
   return Math.round(total * 100) / 100;
+}
+
+export function normalizarMonto(texto: string): string {
+  return texto.trim().replace(',', '.');
 }

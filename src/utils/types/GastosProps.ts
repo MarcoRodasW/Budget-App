@@ -1,4 +1,4 @@
-import { Gasto, NivelPresupuesto, TotalCategoria } from './Gasto';
+import { Categoria, Gasto, NivelPresupuesto, TotalCategoria } from './Gasto';
 
 export type ResumenCardProps = {
   presupuesto: number;
@@ -32,4 +32,17 @@ export type GastoItemProps = {
 export type AvisoDeshacerProps = {
   descripcion: string;
   onDeshacer: () => void;
+};
+
+export type FormularioGastoProps = {
+  descripcion: string;
+  monto: string;
+  categoria: Categoria;
+  errorDescripcion: string | null;
+  errorMonto: string | null;
+  deshabilitado: boolean;
+  onCambiarDescripcion: (texto: string) => void;
+  onCambiarMonto: (texto: string) => void;
+  onCambiarCategoria: (categoria: Categoria) => void;
+  onAgregar: () => void;
 };
